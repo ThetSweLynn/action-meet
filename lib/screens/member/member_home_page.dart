@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dashboard_page.dart';
-import 'settings_page.dart';
+import 'member_dashboard.dart';
+import '../settings_page.dart';
 
 class MemberHomePage extends StatefulWidget {
   const MemberHomePage({super.key});
@@ -13,7 +13,7 @@ class _MemberHomePageState extends State<MemberHomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    const DashboardPage(),
+    const MemberDashboardPage(),
     const SettingsPage(),
   ];
 
