@@ -17,6 +17,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Action Meet',
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const AuthWrapper(),
+      },
       theme: ThemeData(
         fontFamily: 'Poppins',
         colorScheme: const ColorScheme.light(
@@ -25,7 +29,6 @@ class MyApp extends StatelessWidget {
           background: Colors.white,
         ),
       ),
-      home: const AuthWrapper(),
     );
   }
 }
