@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'member_dashboard.dart';
+import 'todo_page.dart';
 import '../settings_page.dart';
 
 class MemberHomePage extends StatefulWidget {
@@ -14,6 +15,7 @@ class _MemberHomePageState extends State<MemberHomePage> {
 
   final List<Widget> _pages = [
     const MemberDashboardPage(),
+    const ToDoPage(),
     const SettingsPage(),
   ];
 
@@ -32,6 +34,10 @@ class _MemberHomePageState extends State<MemberHomePage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
             label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.checklist),
+            label: 'To do',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
