@@ -4,8 +4,13 @@ import '../screens/meeting_detail_page.dart';
 
 class MeetingCard extends StatelessWidget {
   final String documentId;
+  final bool isMemberView;
 
-  const MeetingCard({super.key, required this.documentId});
+  const MeetingCard({
+    super.key,
+    required this.documentId,
+    this.isMemberView = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +46,9 @@ class MeetingCard extends StatelessWidget {
           ),
           child: InkWell(
             onTap: () {
+              // Member detail page was removed from the project; always
+              // navigate to the organizer's MeetingDetailPage so the user
+              // can still see meeting details.
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -84,6 +92,21 @@ class MeetingCard extends StatelessWidget {
                         meeting['type'] == 'online'
                             ? meeting['link'] ?? 'No link'
                             : meeting['place'] ?? 'No place',
+                        style: const TextStyle(color: Color(0xFF666666)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.people,
+                        color: Color(0xFF666666),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${(meeting['members'] as List<dynamic>?)?.length ?? 0} members',
                         style: const TextStyle(color: Color(0xFF666666)),
                       ),
                     ],

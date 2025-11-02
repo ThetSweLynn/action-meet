@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/role_selection_page.dart';
+import 'notification_listener.dart';
 import '../screens/auth/sign_in_page.dart';
 
 class AuthWrapper extends StatelessWidget {
@@ -12,7 +13,7 @@ class AuthWrapper extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return const RoleSelectionPage();
+          return NotificationListenerWrapper(child: const RoleSelectionPage());
         }
         return const SignInPage();
       },

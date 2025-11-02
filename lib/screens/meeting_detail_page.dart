@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/new_meeting_form.dart';
+import '../services/mail_invite.dart';
 
 class MeetingDetailPage extends StatelessWidget {
   final String documentId;
@@ -91,7 +92,121 @@ class MeetingDetailPage extends StatelessWidget {
                       ? meeting['link'] ?? 'No link'
                       : meeting['place'] ?? 'No place',
                 ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE0E0E0)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.people, color: Color(0xFF666666)),
+                          const SizedBox(width: 16),
+                          const Text(
+                            'Members',
+                            style: TextStyle(
+                              color: Color(0xFF666666),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if ((meeting['members'] as List<dynamic>?)?.isEmpty ??
+                          true)
+                        const Text(
+                          'No members added',
+                          style: TextStyle(
+                            color: Color(0xFF666666),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        )
+                      else
+                        Column(
+                          children: (meeting['members'] as List<dynamic>)
+                              .map(
+                                (email) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.person_outline,
+                                        size: 20,
+                                        color: Color(0xFF666666),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        email.toString(),
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D2D2D),
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 32),
+                if ((meeting['members'] as List<dynamic>?)?.isNotEmpty ?? false)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final members = List<String>.from(meeting['members']);
+                          final title = meeting['title'] ?? 'Meeting';
+                          final date =
+                              (meeting['date'] as Timestamp?)
+                                  ?.toDate()
+                                  .toString()
+                                  .split(' ')[0] ??
+                              'No date';
+                          final body =
+                              'You were invited to "$title".\n\nDate: $date\n${meeting['type'] == 'online' ? 'Link: ${meeting['link'] ?? ''}\n' : 'Place: ${meeting['place'] ?? ''}\n'}';
+                          try {
+                            await openMailClient(
+                              recipients: members,
+                              subject: 'You were invited: $title',
+                              body: body,
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Could not open mail client: $e'),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                        child: const Text(
+                          'Send Invites',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 Row(
                   children: [
                     Expanded(
