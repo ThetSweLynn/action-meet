@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../services/mail_invite.dart';
 
 class NewMeetingForm extends StatefulWidget {
   final Map<String, dynamic>? existingMeeting;
@@ -17,8 +18,10 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
   final _titleController = TextEditingController();
   final _placeController = TextEditingController();
   final _linkController = TextEditingController();
+  final _memberEmailController = TextEditingController();
   DateTime? _selectedDate;
   String _meetingType = 'onsite';
+  final List<String> _members = [];
 
   @override
   void initState() {
@@ -30,6 +33,9 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
       _linkController.text = meeting['link'] ?? '';
       _selectedDate = (meeting['date'] as Timestamp?)?.toDate();
       _meetingType = meeting['type'] ?? 'onsite';
+      if (meeting['members'] != null) {
+        _members.addAll(List<String>.from(meeting['members']));
+      }
     }
   }
 
@@ -66,6 +72,7 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
               ? _placeController.text.trim()
               : null,
           'link': _meetingType == 'online' ? _linkController.text.trim() : null,
+          'members': _members,
           if (widget.documentId == null)
             'createdAt': FieldValue.serverTimestamp(),
           if (widget.documentId == null) 'createdBy': user.email,
@@ -79,9 +86,37 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
               .update(meetingData);
           if (context.mounted) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Meeting updated successfully')),
+            final snack = SnackBar(
+              content: const Text('Meeting updated successfully'),
+              action: _members.isNotEmpty
+                  ? SnackBarAction(
+                      label: 'Send Invites',
+                      onPressed: () async {
+                        final subject =
+                            'You were invited: ${_titleController.text.trim()}';
+                        final dateText = _selectedDate != null
+                            ? _selectedDate.toString().split(' ')[0]
+                            : 'No date';
+                        final body =
+                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
+                        try {
+                          await openMailClient(
+                            recipients: _members,
+                            subject: subject,
+                            body: body,
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Could not open mail client: $e'),
+                            ),
+                          );
+                        }
+                      },
+                    )
+                  : null,
             );
+            ScaffoldMessenger.of(context).showSnackBar(snack);
           }
         } else {
           // Create new meeting
@@ -90,9 +125,37 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
               .add(meetingData);
           if (context.mounted) {
             Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Meeting created successfully')),
+            final snack = SnackBar(
+              content: const Text('Meeting created successfully'),
+              action: _members.isNotEmpty
+                  ? SnackBarAction(
+                      label: 'Send Invites',
+                      onPressed: () async {
+                        final subject =
+                            'You were invited: ${_titleController.text.trim()}';
+                        final dateText = _selectedDate != null
+                            ? _selectedDate.toString().split(' ')[0]
+                            : 'No date';
+                        final body =
+                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
+                        try {
+                          await openMailClient(
+                            recipients: _members,
+                            subject: subject,
+                            body: body,
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Could not open mail client: $e'),
+                            ),
+                          );
+                        }
+                      },
+                    )
+                  : null,
             );
+            ScaffoldMessenger.of(context).showSnackBar(snack);
           }
         }
       } catch (e) {
@@ -190,6 +253,80 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _members
+                        .map(
+                          (email) => Chip(
+                            label: Text(email),
+                            deleteIcon: const Icon(Icons.close, size: 18),
+                            onDeleted: () =>
+                                setState(() => _members.remove(email)),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    controller: _memberEmailController,
+                    decoration: InputDecoration(
+                      hintText: 'Add member email',
+                      hintStyle: const TextStyle(color: Color(0xFF808080)),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: Color(0xFF2D2D2D),
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 20,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () {
+                          final email = _memberEmailController.text.trim();
+                          if (email.isNotEmpty && email.contains('@')) {
+                            setState(() {
+                              if (!_members.contains(email)) {
+                                _members.add(email);
+                                _memberEmailController.clear();
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    onFieldSubmitted: (email) {
+                      email = email.trim();
+                      if (email.isNotEmpty && email.contains('@')) {
+                        setState(() {
+                          if (!_members.contains(email)) {
+                            _members.add(email);
+                            _memberEmailController.clear();
+                          }
+                        });
+                      }
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Container(
@@ -347,6 +484,7 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
     _titleController.dispose();
     _placeController.dispose();
     _linkController.dispose();
+    _memberEmailController.dispose();
     super.dispose();
   }
 }
