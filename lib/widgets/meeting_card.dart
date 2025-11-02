@@ -88,11 +88,14 @@ class MeetingCard extends StatelessWidget {
                         size: 20,
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        meeting['type'] == 'online'
-                            ? meeting['link'] ?? 'No link'
-                            : meeting['place'] ?? 'No place',
-                        style: const TextStyle(color: Color(0xFF666666)),
+                      Expanded(
+                        child: Text(
+                          meeting['type'] == 'online'
+                              ? meeting['link'] ?? 'No link'
+                              : meeting['place'] ?? 'No place',
+                          style: const TextStyle(color: Color(0xFF666666)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
