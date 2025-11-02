@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 import '../screens/meeting_detail_page.dart';
 
 class MeetingCard extends StatelessWidget {
@@ -46,9 +47,6 @@ class MeetingCard extends StatelessWidget {
           ),
           child: InkWell(
             onTap: () {
-              // Member detail page was removed from the project; always
-              // navigate to the organizer's MeetingDetailPage so the user
-              // can still see meeting details.
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -60,59 +58,79 @@ class MeetingCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    meeting['title'] ?? 'No Title',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  if (date != null)
-                    Text(
-                      date.toLocal().toString().split(' ')[0],
-                      style: const TextStyle(color: Color(0xFF666666)),
-                    ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        meeting['type'] == 'online'
-                            ? Icons.video_call
-                            : Icons.location_on,
-                        color: const Color(0xFF666666),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          meeting['type'] == 'online'
-                              ? meeting['link'] ?? 'No link'
-                              : meeting['place'] ?? 'No place',
-                          style: const TextStyle(color: Color(0xFF666666)),
-                          overflow: TextOverflow.ellipsis,
+                  // Left section (texts)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          meeting['title'] ?? 'No Title',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D2D2D),
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        if (date != null)
+                          Text(
+                            DateFormat('EEE, MMM d yyyy • h:mm a').format(date),
+                            style: const TextStyle(color: Color(0xFF666666)),
+                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              meeting['type'] == 'online'
+                                  ? Icons.video_call
+                                  : Icons.location_on,
+                              color: const Color(0xFF666666),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                meeting['type'] == 'online'
+                                    ? meeting['link'] ?? 'No link'
+                                    : meeting['place'] ?? 'No place',
+                                style: const TextStyle(
+                                  color: Color(0xFF666666),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.people,
+                              color: Color(0xFF666666),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '${(meeting['members'] as List<dynamic>?)?.length ?? 0} members',
+                              style: const TextStyle(color: Color(0xFF666666)),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.people,
-                        color: Color(0xFF666666),
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${(meeting['members'] as List<dynamic>?)?.length ?? 0} members',
-                        style: const TextStyle(color: Color(0xFF666666)),
-                      ),
-                    ],
+
+                  // Right-side icon based on meeting type
+                  Icon(
+                    meeting['type'] == 'online'
+                        ? Icons.laptop_mac
+                        : Icons.meeting_room,
+                    color: meeting['type'] == 'online'
+                        ? Colors.blue.shade600
+                        : Colors.blueGrey.shade600,
+                    size: 28,
                   ),
                 ],
               ),

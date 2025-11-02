@@ -2,11 +2,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../widgets/upcoming_meetings_widget.dart';
 
-
-
-class MemberDashboardPage extends StatelessWidget {
+class MemberDashboardPage extends StatefulWidget {
   const MemberDashboardPage({super.key});
+
+  @override
+  State<MemberDashboardPage> createState() => _MemberDashboardPageState();
+}
+
+class _MemberDashboardPageState extends State<MemberDashboardPage> {
+  bool _isChartExpanded = true;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +25,14 @@ class MemberDashboardPage extends StatelessWidget {
           stream: FirebaseAuth.instance.authStateChanges(),
           builder: (context, userSnapshot) {
             if (!userSnapshot.hasData) {
-              return const Center(child: CircularProgressIndicator(),);
+              return const Center(child: CircularProgressIndicator());
             }
 
             final user = userSnapshot.data;
             if (user == null) {
-              return const Center(child: Text('Please sign in to view dashboard'),);
+              return const Center(
+                child: Text('Please sign in to view dashboard'),
+              );
             }
 
             return StreamBuilder<QuerySnapshot>(
@@ -36,16 +44,16 @@ class MemberDashboardPage extends StatelessWidget {
                 if (!tasksSnapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-            
+
                 int pendingTasks = 0;
                 int completeTasks = 0;
                 int missedDeadlineTasks = 0;
-            
+
                 for (var doc in tasksSnapshot.data!.docs) {
                   final data = doc.data() as Map<String, dynamic>;
                   final status = data['status'] as String?;
                   final deadline = data['deadline'];
-            
+
                   DateTime? deadlineDate;
                   if (deadline != null) {
                     if (deadline is Timestamp) {
@@ -54,14 +62,14 @@ class MemberDashboardPage extends StatelessWidget {
                       deadlineDate = DateTime.tryParse(deadline);
                     }
                   }
-            
+
                   if (deadlineDate != null) {
                     final deadlineDay = DateTime(
                       deadlineDate.year,
                       deadlineDate.month,
                       deadlineDate.day,
                     );
-            
+
                     if (deadlineDay.isBefore(today) && status == 'pending') {
                       missedDeadlineTasks++;
                     } else {
@@ -79,16 +87,16 @@ class MemberDashboardPage extends StatelessWidget {
                     }
                   }
                 }
-            
+
                 final totalTasks =
                     pendingTasks + completeTasks + missedDeadlineTasks;
-            
+
                 return Padding(
                   padding: const EdgeInsets.all(25),
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        const SizedBox(height: 20),
+                        //const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -102,8 +110,8 @@ class MemberDashboardPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 30),
-            
+                        const SizedBox(height: 20),
+
                         // ==== Task Count Cards ====
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -123,11 +131,11 @@ class MemberDashboardPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 15),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
-                            vertical: 15,
+                            vertical: 10,
                             horizontal: 25,
                           ),
                           decoration: BoxDecoration(
@@ -167,122 +175,218 @@ class MemberDashboardPage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 30),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // ==== Donut Chart ====
-                            Container(
-                              width: 200,
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                children: [
-                                  SizedBox(
-                                    height: 140,
-                                    child: totalTasks == 0
-                                        ? Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              Container(
-                                                width: 140,
-                                                height: 140,
-                                                decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: Colors.grey.shade300,
-                                                    width: 5,
-                                                  ),
-                                                ),
-                                              ),
-                                              Text(
-                                                'No Tasks',
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Colors.grey.shade600,
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                        : PieChart(
-                                            PieChartData(
-                                              sectionsSpace: 2,
-                                              centerSpaceRadius: 30,
-                                              sections: [
-                                                if (pendingTasks > 0)
-                                                  PieChartSectionData(
-                                                    value: pendingTasks
-                                                        .toDouble(),
-                                                    title:
-                                                        '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                    color: Colors.orangeAccent,
-                                                    radius: 60,
-                                                    titleStyle: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                if (completeTasks > 0)
-                                                  PieChartSectionData(
-                                                    value: completeTasks
-                                                        .toDouble(),
-                                                    title:
-                                                        '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                    color: Colors.green,
-                                                    radius: 60,
-                                                    titleStyle: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                                if (missedDeadlineTasks > 0)
-                                                  PieChartSectionData(
-                                                    value: missedDeadlineTasks
-                                                        .toDouble(),
-                                                    title:
-                                                        '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                    color: Colors.redAccent,
-                                                    radius: 60,
-                                                    titleStyle: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Colors.white,
-                                                      fontSize: 14,
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
+                        const SizedBox(height: 20),
+
+                        // ==== Collapsible Chart Section ====
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade400),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _isChartExpanded = !_isChartExpanded;
+                                  });
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 15,
+                                    vertical: 10,
                                   ),
-                                ],
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Task Overview Chart',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      Icon(
+                                        _isChartExpanded
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        color: Colors.black87,
+                                        size: 35,
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 25),
-                            // Legends
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildLegend(Colors.orangeAccent, 'Pending'),
-                                const SizedBox(height: 15),
-                                _buildLegend(Colors.green, 'Complete'),
-                                const SizedBox(height: 15),
-                                _buildLegend(Colors.redAccent, 'Missed'),
-                              ],
-                            ),
-                          ],
+
+                              AnimatedCrossFade(
+                                firstChild: const SizedBox.shrink(),
+                                secondChild: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // ==== Donut Chart ====
+                                      Container(
+                                        width: 180,
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          children: [
+                                            SizedBox(
+                                              height: 140,
+                                              child: totalTasks == 0
+                                                  ? Stack(
+                                                      alignment:
+                                                          Alignment.center,
+                                                      children: [
+                                                        Container(
+                                                          width: 140,
+                                                          height: 140,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                shape: BoxShape
+                                                                    .circle,
+                                                                border: Border.all(
+                                                                  color: Colors
+                                                                      .grey
+                                                                      .shade300,
+                                                                  width: 5,
+                                                                ),
+                                                              ),
+                                                        ),
+                                                        Text(
+                                                          'No Tasks',
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors
+                                                                .grey
+                                                                .shade600,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  : PieChart(
+                                                      PieChartData(
+                                                        sectionsSpace: 2,
+                                                        centerSpaceRadius: 30,
+                                                        sections: [
+                                                          if (pendingTasks > 0)
+                                                            PieChartSectionData(
+                                                              value: pendingTasks
+                                                                  .toDouble(),
+                                                              title:
+                                                                  '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                              color: Colors
+                                                                  .orangeAccent,
+                                                              radius: 60,
+                                                              titleStyle:
+                                                                  const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        14,
+                                                                  ),
+                                                            ),
+                                                          if (completeTasks > 0)
+                                                            PieChartSectionData(
+                                                              value: completeTasks
+                                                                  .toDouble(),
+                                                              title:
+                                                                  '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                              color:
+                                                                  Colors.green,
+                                                              radius: 60,
+                                                              titleStyle:
+                                                                  const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        14,
+                                                                  ),
+                                                            ),
+                                                          if (missedDeadlineTasks >
+                                                              0)
+                                                            PieChartSectionData(
+                                                              value:
+                                                                  missedDeadlineTasks
+                                                                      .toDouble(),
+                                                              title:
+                                                                  '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                              color: Colors
+                                                                  .redAccent,
+                                                              radius: 60,
+                                                              titleStyle:
+                                                                  const TextStyle(
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .bold,
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        14,
+                                                                  ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 25),
+                                      // Legends
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          _buildLegend(
+                                            Colors.orangeAccent,
+                                            'Pending',
+                                          ),
+                                          const SizedBox(height: 15),
+                                          _buildLegend(
+                                            Colors.green,
+                                            'Complete',
+                                          ),
+                                          const SizedBox(height: 15),
+                                          _buildLegend(
+                                            Colors.redAccent,
+                                            'Missed',
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                crossFadeState: _isChartExpanded
+                                    ? CrossFadeState.showSecond
+                                    : CrossFadeState.showFirst,
+                                duration: const Duration(milliseconds: 300),
+                              ),
+                            ],
+                          ),
                         ),
+                        const SizedBox(height: 20),
+                        // Upcoming Meetings Session
+                        UpcomingMeetingsWidget(userEmail: user.email!),
                       ],
                     ),
                   ),
                 );
               },
             );
-          }
+          },
         ),
       ),
     );
