@@ -221,158 +221,161 @@ class _MemberDashboardPageState extends State<MemberDashboardPage> {
                               ),
 
                               AnimatedCrossFade(
+                                duration: const Duration(milliseconds: 300),
+                                crossFadeState: _isChartExpanded
+                                    ? CrossFadeState.showSecond
+                                    : CrossFadeState.showFirst,
                                 firstChild: const SizedBox.shrink(),
-                                secondChild: Container(
+                                secondChild: Padding(
                                   padding: const EdgeInsets.all(20),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      // ==== Donut Chart ====
-                                      Container(
-                                        width: 180,
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          children: [
-                                            SizedBox(
-                                              height: 140,
-                                              child: totalTasks == 0
-                                                  ? Stack(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      children: [
-                                                        Container(
-                                                          width: 140,
-                                                          height: 140,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                border: Border.all(
+                                      Expanded(
+                                        flex: 3,
+                                        child: Container(
+                                          constraints: const BoxConstraints(
+                                            maxWidth: 180,
+                                          ),
+                                          padding: const EdgeInsets.all(20),
+                                          child: Column(
+                                            children: [
+                                              SizedBox(
+                                                height: 140,
+                                                child: totalTasks == 0
+                                                    ? Stack(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        children: [
+                                                          Container(
+                                                            width: 140,
+                                                            height: 140,
+                                                            decoration: BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              border: Border.all(
+                                                                color: Colors
+                                                                    .grey
+                                                                    .shade300,
+                                                                width: 5,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            'No Tasks',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Colors
+                                                                  .grey
+                                                                  .shade600,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      )
+                                                    : PieChart(
+                                                        PieChartData(
+                                                          sectionsSpace: 2,
+                                                          centerSpaceRadius: 30,
+                                                          sections: [
+                                                            if (pendingTasks >
+                                                                0)
+                                                              PieChartSectionData(
+                                                                value: pendingTasks
+                                                                    .toDouble(),
+                                                                title:
+                                                                    '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                                color: Colors
+                                                                    .orangeAccent,
+                                                                radius: 60,
+                                                                titleStyle: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
                                                                   color: Colors
-                                                                      .grey
-                                                                      .shade300,
-                                                                  width: 5,
+                                                                      .white,
+                                                                  fontSize: 14,
                                                                 ),
                                                               ),
+                                                            if (completeTasks >
+                                                                0)
+                                                              PieChartSectionData(
+                                                                value: completeTasks
+                                                                    .toDouble(),
+                                                                title:
+                                                                    '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                                color: Colors
+                                                                    .green,
+                                                                radius: 60,
+                                                                titleStyle: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 14,
+                                                                ),
+                                                              ),
+                                                            if (missedDeadlineTasks >
+                                                                0)
+                                                              PieChartSectionData(
+                                                                value: missedDeadlineTasks
+                                                                    .toDouble(),
+                                                                title:
+                                                                    '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                                color: Colors
+                                                                    .redAccent,
+                                                                radius: 60,
+                                                                titleStyle: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 14,
+                                                                ),
+                                                              ),
+                                                          ],
                                                         ),
-                                                        Text(
-                                                          'No Tasks',
-                                                          style: TextStyle(
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: Colors
-                                                                .grey
-                                                                .shade600,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    )
-                                                  : PieChart(
-                                                      PieChartData(
-                                                        sectionsSpace: 2,
-                                                        centerSpaceRadius: 30,
-                                                        sections: [
-                                                          if (pendingTasks > 0)
-                                                            PieChartSectionData(
-                                                              value: pendingTasks
-                                                                  .toDouble(),
-                                                              title:
-                                                                  '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                              color: Colors
-                                                                  .orangeAccent,
-                                                              radius: 60,
-                                                              titleStyle:
-                                                                  const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
-                                                            ),
-                                                          if (completeTasks > 0)
-                                                            PieChartSectionData(
-                                                              value: completeTasks
-                                                                  .toDouble(),
-                                                              title:
-                                                                  '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                              color:
-                                                                  Colors.green,
-                                                              radius: 60,
-                                                              titleStyle:
-                                                                  const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
-                                                            ),
-                                                          if (missedDeadlineTasks >
-                                                              0)
-                                                            PieChartSectionData(
-                                                              value:
-                                                                  missedDeadlineTasks
-                                                                      .toDouble(),
-                                                              title:
-                                                                  '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                              color: Colors
-                                                                  .redAccent,
-                                                              radius: 60,
-                                                              titleStyle:
-                                                                  const TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        14,
-                                                                  ),
-                                                            ),
-                                                        ],
                                                       ),
-                                                    ),
-                                            ),
-                                          ],
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 25),
                                       // Legends
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _buildLegend(
-                                            Colors.orangeAccent,
-                                            'Pending',
-                                          ),
-                                          const SizedBox(height: 15),
-                                          _buildLegend(
-                                            Colors.green,
-                                            'Complete',
-                                          ),
-                                          const SizedBox(height: 15),
-                                          _buildLegend(
-                                            Colors.redAccent,
-                                            'Missed',
-                                          ),
-                                        ],
+                                      Expanded(
+                                        flex: 2,
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildLegend(
+                                              Colors.orangeAccent,
+                                              'Pending',
+                                            ),
+                                            const SizedBox(height: 15),
+                                            _buildLegend(
+                                              Colors.green,
+                                              'Complete',
+                                            ),
+                                            const SizedBox(height: 15),
+                                            _buildLegend(
+                                              Colors.redAccent,
+                                              'Missed',
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                crossFadeState: _isChartExpanded
-                                    ? CrossFadeState.showSecond
-                                    : CrossFadeState.showFirst,
-                                duration: const Duration(milliseconds: 300),
                               ),
                             ],
                           ),

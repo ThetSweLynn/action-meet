@@ -45,9 +45,7 @@ class _NotificationListenerWrapperState
             final data = change.doc.data();
             if (data == null) continue;
             final title = (data['title'] ?? 'New meeting').toString();
-            // Previously we showed an in-app SnackBar here. Per user's request
-            // we remove the SnackBar notification and replace it with a
-            // lightweight debug log so there is no visible UI interruption.
+            // Keep a debug log for monitoring without UI interruption
             debugPrint(
               'Notification (silent): you were added to a meeting: $title',
             );

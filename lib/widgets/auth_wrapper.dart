@@ -12,10 +12,9 @@ class AuthWrapper extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return NotificationListenerWrapper(child: const RoleSelectionPage());
-        }
-        return const SignInPage();
+        return snapshot.hasData
+            ? NotificationListenerWrapper(child: const RoleSelectionPage())
+            : const SignInPage();
       },
     );
   }

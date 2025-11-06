@@ -77,6 +77,7 @@ class UpcomingMeetingsWidget extends StatelessWidget {
                   final type = data['type'] as String? ?? 'onsite';
                   final place = data['place'] as String? ?? '';
                   final link = data['link'] as String? ?? '';
+                  final time = data['time'] as String?;
                   final meetingDate = data['date'];
                   DateTime? dateTime;
 
@@ -92,6 +93,7 @@ class UpcomingMeetingsWidget extends StatelessWidget {
                     type: type,
                     place: place,
                     link: link,
+                    time: time,
                   );
                 },
               );
@@ -108,6 +110,7 @@ class UpcomingMeetingsWidget extends StatelessWidget {
     required String type,
     required String place,
     required String link,
+    String? time,
   }) {
     final icon = type == 'online'
         ? Icons.videocam
@@ -146,7 +149,7 @@ class UpcomingMeetingsWidget extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        DateFormat('EEE, MMM d yyyy • h:mm a').format(dateTime),
+                        '${DateFormat('EEE, MMM d yyyy').format(dateTime)} • ${time ?? 'No time'}',
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.grey.shade700,

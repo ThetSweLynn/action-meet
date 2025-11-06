@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/mail_invite.dart';
+import '../services/smtp_mail_service.dart';
 
 class NewMeetingForm extends StatefulWidget {
   final Map<String, dynamic>? existingMeeting;
@@ -20,6 +20,7 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
   final _linkController = TextEditingController();
   final _memberEmailController = TextEditingController();
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   String _meetingType = 'onsite';
   final List<String> _members = [];
 
@@ -50,6 +51,22 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
       setState(() {
         _selectedDate = picked;
       });
+      // After selecting date, prompt for time
+      if (context.mounted) {
+        _selectTime(context);
+      }
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
     }
   }
 
@@ -67,6 +84,9 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
         final meetingData = {
           'title': _titleController.text.trim(),
           'date': _selectedDate,
+          'time': _selectedTime != null
+              ? '${_selectedTime!.hour}:${_selectedTime!.minute}'
+              : null,
           'type': _meetingType,
           'place': _meetingType == 'onsite'
               ? _placeController.text.trim()
@@ -98,19 +118,31 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
                             ? _selectedDate.toString().split(' ')[0]
                             : 'No date';
                         final body =
-                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
+                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\nTime: ${_selectedTime?.format(context) ?? 'Not specified'}\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
                         try {
-                          await openMailClient(
+                          // Send invitation email via SMTP
+                          await SmtpMailService.sendMeetingInvitation(
                             recipients: _members,
                             subject: subject,
                             body: body,
                           );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Invites sent successfully'),
+                              ),
+                            );
+                          }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Could not open mail client: $e'),
-                            ),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Failed to send invites via SMTP: $e',
+                                ),
+                              ),
+                            );
+                          }
                         }
                       },
                     )
@@ -137,19 +169,30 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
                             ? _selectedDate.toString().split(' ')[0]
                             : 'No date';
                         final body =
-                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
+                            'You\'ve been invited to "${_titleController.text.trim()}".\n\nDate: $dateText\nTime: ${_selectedTime?.format(context) ?? 'Not specified'}\n${_meetingType == 'online' ? 'Link: ${_linkController.text.trim()}\n' : 'Place: ${_placeController.text.trim()}\n'}';
                         try {
-                          await openMailClient(
+                          await SmtpMailService.sendMeetingInvitation(
                             recipients: _members,
                             subject: subject,
                             body: body,
                           );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Invites sent successfully'),
+                              ),
+                            );
+                          }
                         } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Could not open mail client: $e'),
-                            ),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Failed to send invites via SMTP: $e',
+                                ),
+                              ),
+                            );
+                          }
                         }
                       },
                     )
@@ -241,8 +284,8 @@ class _NewMeetingFormState extends State<NewMeetingForm> {
                     children: [
                       Text(
                         _selectedDate == null
-                            ? 'Select Date'
-                            : _selectedDate.toString().split(' ')[0],
+                            ? 'Select Date & Time'
+                            : '${_selectedDate.toString().split(' ')[0]} ${_selectedTime?.format(context) ?? 'Select Time'}',
                         style: TextStyle(
                           color: _selectedDate == null
                               ? const Color(0xFF808080)

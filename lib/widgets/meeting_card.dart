@@ -76,7 +76,7 @@ class MeetingCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         if (date != null)
                           Text(
-                            DateFormat('EEE, MMM d yyyy • h:mm a').format(date),
+                            '${DateFormat('EEE, MMM d yyyy').format(date)} • ${meeting['time'] ?? 'No time'}',
                             style: const TextStyle(color: Color(0xFF666666)),
                           ),
                         const SizedBox(height: 8),

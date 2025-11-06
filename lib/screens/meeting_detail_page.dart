@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/new_meeting_form.dart';
-import '../services/mail_invite.dart';
+import '../services/smtp_mail_service.dart';
 
 class MeetingDetailPage extends StatelessWidget {
   final String documentId;
@@ -77,8 +77,10 @@ class MeetingDetailPage extends StatelessWidget {
                 const SizedBox(height: 24),
                 _DetailItem(
                   icon: Icons.calendar_today,
-                  title: 'Date',
-                  value: date?.toLocal().toString().split(' ')[0] ?? 'No date',
+                  title: 'Date & Time',
+                  value: date != null
+                      ? '${date.toLocal().toString().split(' ')[0]} • ${meeting['time'] ?? 'No time'}'
+                      : 'No date',
                 ),
                 const SizedBox(height: 16),
                 _DetailItem(
@@ -140,11 +142,14 @@ class MeetingDetailPage extends StatelessWidget {
                                         color: Color(0xFF666666),
                                       ),
                                       const SizedBox(width: 8),
-                                      Text(
-                                        email.toString(),
-                                        style: const TextStyle(
-                                          color: Color(0xFF2D2D2D),
-                                          fontSize: 16,
+                                      Expanded(
+                                        child: Text(
+                                          email.toString(),
+                                          style: const TextStyle(
+                                            color: Color(0xFF2D2D2D),
+                                            fontSize: 16,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
@@ -172,18 +177,27 @@ class MeetingDetailPage extends StatelessWidget {
                                   .toString()
                                   .split(' ')[0] ??
                               'No date';
+                          final time = meeting['time'] ?? 'Time not specified';
                           final body =
-                              'You were invited to "$title".\n\nDate: $date\n${meeting['type'] == 'online' ? 'Link: ${meeting['link'] ?? ''}\n' : 'Place: ${meeting['place'] ?? ''}\n'}';
+                              'You were invited to "$title".\n\nDate: $date\nTime: $time\n${meeting['type'] == 'online' ? 'Link: ${meeting['link'] ?? ''}\n' : 'Place: ${meeting['place'] ?? ''}\n'}';
                           try {
-                            await openMailClient(
+                            // Attempt to send via SMTP only. If it fails, show error to user.
+                            await SmtpMailService.sendMeetingInvitation(
                               recipients: members,
                               subject: 'You were invited: $title',
                               body: body,
                             );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Invites sent successfully'),
+                              ),
+                            );
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Could not open mail client: $e'),
+                                content: Text(
+                                  'Failed to send invites via SMTP: $e',
+                                ),
                               ),
                             );
                           }
