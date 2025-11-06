@@ -38,12 +38,19 @@ class MeetingCard extends StatelessWidget {
         final meeting = snapshot.data!.data() as Map<String, dynamic>;
         final date = (meeting['date'] as Timestamp?)?.toDate();
 
+        // Check if meeting is in the past
+        final isPastMeeting = date != null && date.isBefore(DateTime.now());
+
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade500),
-            color: Colors.white,
+            border: Border.all(
+              color: isPastMeeting
+                  ? Colors.grey.shade300
+                  : Colors.grey.shade500,
+            ),
+            color: isPastMeeting ? Colors.grey.shade50 : Colors.white,
           ),
           child: InkWell(
             onTap: () {
@@ -65,19 +72,51 @@ class MeetingCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          meeting['title'] ?? 'No Title',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF2D2D2D),
+                        if (isPastMeeting)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Past',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF666666),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
+                        const SizedBox(height: 5),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                meeting['title'] ?? 'No Title',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: isPastMeeting
+                                      ? const Color(0xFF888888)
+                                      : const Color(0xFF2D2D2D),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         if (date != null)
                           Text(
                             '${DateFormat('EEE, MMM d yyyy').format(date)} • ${meeting['time'] ?? 'No time'}',
-                            style: const TextStyle(color: Color(0xFF666666)),
+                            style: TextStyle(
+                              color: isPastMeeting
+                                  ? const Color(0xFF999999)
+                                  : const Color(0xFF666666),
+                            ),
                           ),
                         const SizedBox(height: 8),
                         Row(
@@ -86,7 +125,9 @@ class MeetingCard extends StatelessWidget {
                               meeting['type'] == 'online'
                                   ? Icons.video_call
                                   : Icons.location_on,
-                              color: const Color(0xFF666666),
+                              color: isPastMeeting
+                                  ? const Color(0xFF999999)
+                                  : const Color(0xFF666666),
                               size: 20,
                             ),
                             const SizedBox(width: 8),
@@ -95,8 +136,10 @@ class MeetingCard extends StatelessWidget {
                                 meeting['type'] == 'online'
                                     ? meeting['link'] ?? 'No link'
                                     : meeting['place'] ?? 'No place',
-                                style: const TextStyle(
-                                  color: Color(0xFF666666),
+                                style: TextStyle(
+                                  color: isPastMeeting
+                                      ? const Color(0xFF999999)
+                                      : const Color(0xFF666666),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -106,15 +149,21 @@ class MeetingCard extends StatelessWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.people,
-                              color: Color(0xFF666666),
+                              color: isPastMeeting
+                                  ? const Color(0xFF999999)
+                                  : const Color(0xFF666666),
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Text(
                               '${(meeting['members'] as List<dynamic>?)?.length ?? 0} members',
-                              style: const TextStyle(color: Color(0xFF666666)),
+                              style: TextStyle(
+                                color: isPastMeeting
+                                    ? const Color(0xFF999999)
+                                    : const Color(0xFF666666),
+                              ),
                             ),
                           ],
                         ),
@@ -122,15 +171,19 @@ class MeetingCard extends StatelessWidget {
                     ),
                   ),
 
+                  const SizedBox(width: 10),
                   // Right-side icon based on meeting type
-                  Icon(
-                    meeting['type'] == 'online'
-                        ? Icons.laptop_mac
-                        : Icons.meeting_room,
-                    color: meeting['type'] == 'online'
-                        ? Colors.blue.shade600
-                        : Colors.blueGrey.shade600,
-                    size: 28,
+                  Opacity(
+                    opacity: isPastMeeting ? 0.4 : 1.0,
+                    child: Icon(
+                      meeting['type'] == 'online'
+                          ? Icons.videocam
+                          : Icons.meeting_room,
+                      color: meeting['type'] == 'online'
+                          ? Colors.blue.shade600
+                          : Colors.blueGrey.shade600,
+                      size: 28,
+                    ),
                   ),
                 ],
               ),

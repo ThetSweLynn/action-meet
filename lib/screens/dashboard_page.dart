@@ -23,7 +23,9 @@ class DashboardPage extends StatelessWidget {
 
             final user = userSnapshot.data;
             if (user == null) {
-              return const Center(child: Text('Please sign in to view dashboard'));
+              return const Center(
+                child: Text('Please sign in to view dashboard'),
+              );
             }
 
             return StreamBuilder<QuerySnapshot>(
@@ -72,7 +74,8 @@ class DashboardPage extends StatelessWidget {
                           deadlineDate.day,
                         );
 
-                        if (deadlineDay.isBefore(today) && status == 'pending') {
+                        if (deadlineDay.isBefore(today) &&
+                            status == 'pending') {
                           missedDeadlineTasks++;
                         } else {
                           if (status == 'pending') {
@@ -155,14 +158,14 @@ class DashboardPage extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: _buildTaskCard(
-                                    title: 'Pending Tasks',
+                                    title: 'Pending\nTasks',
                                     count: pendingTasks,
                                   ),
                                 ),
                                 const SizedBox(width: 15),
                                 Expanded(
                                   child: _buildTaskCard(
-                                    title: 'Complete Tasks',
+                                    title: 'Complete\nTasks',
                                     count: completeTasks,
                                   ),
                                 ),
@@ -181,7 +184,8 @@ class DashboardPage extends StatelessWidget {
                                 color: Colors.red.shade50,
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -224,81 +228,102 @@ class DashboardPage extends StatelessWidget {
                                     children: [
                                       SizedBox(
                                         height: 140,
-                                        child: totalTasks == 0 
-                                          ? Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                Container(
-                                                  width: 160,
-                                                  height: 160,
-                                                  decoration: BoxDecoration(
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                      color: Colors.grey.shade300,
-                                                      width: 5,
-                                                    )
+                                        child: totalTasks == 0
+                                            ? Stack(
+                                                alignment: Alignment.center,
+                                                children: [
+                                                  Container(
+                                                    width: 160,
+                                                    height: 160,
+                                                    decoration: BoxDecoration(
+                                                      shape: BoxShape.circle,
+                                                      border: Border.all(
+                                                        color: Colors
+                                                            .grey
+                                                            .shade300,
+                                                        width: 5,
+                                                      ),
+                                                    ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  'No Tasks',
-                                                  style: TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.grey.shade600,
+                                                  Text(
+                                                    'No Tasks',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          Colors.grey.shade600,
+                                                    ),
                                                   ),
+                                                ],
+                                              )
+                                            : PieChart(
+                                                PieChartData(
+                                                  sectionsSpace: 2,
+                                                  centerSpaceRadius: 30,
+                                                  sections: [
+                                                    if (pendingTasks > 0)
+                                                      PieChartSectionData(
+                                                        value: pendingTasks
+                                                            .toDouble(),
+                                                        title: totalTasks == 0
+                                                            ? '0%'
+                                                            : '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                        color:
+                                                            Colors.orangeAccent,
+                                                        radius: 60,
+                                                        titleStyle:
+                                                            const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 14,
+                                                            ),
+                                                      ),
+                                                    if (completeTasks > 0)
+                                                      PieChartSectionData(
+                                                        value: completeTasks
+                                                            .toDouble(),
+                                                        title: totalTasks == 0
+                                                            ? '0%'
+                                                            : '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                        color: Colors.green,
+                                                        radius: 60,
+                                                        titleStyle:
+                                                            const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 14,
+                                                            ),
+                                                      ),
+                                                    if (missedDeadlineTasks > 0)
+                                                      PieChartSectionData(
+                                                        value:
+                                                            missedDeadlineTasks
+                                                                .toDouble(),
+                                                        title: totalTasks == 0
+                                                            ? '0%'
+                                                            : '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
+                                                        color: Colors.redAccent,
+                                                        radius: 60,
+                                                        titleStyle:
+                                                            const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 14,
+                                                            ),
+                                                      ),
+                                                  ],
                                                 ),
-                                              ],
-                                          )
-                                          : PieChart(
-                                          PieChartData(
-                                            sectionsSpace: 2,
-                                            centerSpaceRadius: 30,
-                                            sections: [
-                                              if (pendingTasks > 0)
-                                                PieChartSectionData(
-                                                  value: pendingTasks.toDouble(),
-                                                  title: totalTasks == 0
-                                                      ? '0%'
-                                                      : '${((pendingTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                  color: Colors.orangeAccent,
-                                                  radius: 60,
-                                                  titleStyle: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              if (completeTasks > 0)
-                                                PieChartSectionData(
-                                                  value: completeTasks.toDouble(),
-                                                  title: totalTasks == 0
-                                                      ? '0%'
-                                                      : '${((completeTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                  color: Colors.green,
-                                                  radius: 60,
-                                                  titleStyle: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              if (missedDeadlineTasks > 0)
-                                                PieChartSectionData(
-                                                  value: missedDeadlineTasks.toDouble(),
-                                                  title: totalTasks == 0
-                                                      ? '0%'
-                                                      : '${((missedDeadlineTasks / totalTasks) * 100).toStringAsFixed(0)}%',
-                                                  color: Colors.redAccent,
-                                                  radius: 60,
-                                                  titleStyle: const TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.white,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
+                                              ),
                                       ),
                                     ],
                                   ),
@@ -309,7 +334,10 @@ class DashboardPage extends StatelessWidget {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _buildLegend(Colors.orangeAccent, 'Pending'),
+                                    _buildLegend(
+                                      Colors.orangeAccent,
+                                      'Pending',
+                                    ),
                                     const SizedBox(height: 15),
                                     _buildLegend(Colors.green, 'Complete'),
                                     const SizedBox(height: 15),

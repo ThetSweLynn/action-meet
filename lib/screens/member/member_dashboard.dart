@@ -118,14 +118,14 @@ class _MemberDashboardPageState extends State<MemberDashboardPage> {
                           children: [
                             Expanded(
                               child: _buildTaskCard(
-                                title: 'Pending Tasks',
+                                title: 'Pending\nTasks',
                                 count: pendingTasks,
                               ),
                             ),
                             const SizedBox(width: 15),
                             Expanded(
                               child: _buildTaskCard(
-                                title: 'Complete Tasks',
+                                title: 'Complete\nTasks',
                                 count: completeTasks,
                               ),
                             ),
@@ -383,6 +383,7 @@ class _MemberDashboardPageState extends State<MemberDashboardPage> {
                         const SizedBox(height: 20),
                         // Upcoming Meetings Session
                         UpcomingMeetingsWidget(userEmail: user.email!),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
