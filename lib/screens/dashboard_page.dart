@@ -39,11 +39,40 @@ class DashboardPage extends StatelessWidget {
                 }
                 final totalMeetings = meetingsSnapshot.data!.docs.length;
 
+                // Build a query that matches tasks created by the current user.
+                // Some accounts may not have an email (e.g., phone auth), so
+                // we match either by email or by uid. Firestore supports "whereIn"
+                // for a small list of values.
+                final identifiers = <String>[];
+                if (user.email != null && user.email!.isNotEmpty) {
+                  identifiers.add(user.email!);
+                }
+                if (user.uid.isNotEmpty) identifiers.add(user.uid);
+
+                Query taskQuery = FirebaseFirestore.instance.collection(
+                  'tasks',
+                );
+                if (identifiers.isEmpty) {
+                  // Unlikely: no usable identifier; return an empty stream by
+                  // querying a non-existing field equality that never matches.
+                  taskQuery = taskQuery.where(
+                    'createdBy',
+                    isEqualTo: '__none__',
+                  );
+                } else if (identifiers.length == 1) {
+                  taskQuery = taskQuery.where(
+                    'createdBy',
+                    isEqualTo: identifiers[0],
+                  );
+                } else {
+                  taskQuery = taskQuery.where(
+                    'createdBy',
+                    whereIn: identifiers,
+                  );
+                }
+
                 return StreamBuilder<QuerySnapshot>(
-                  stream: FirebaseFirestore.instance
-                      .collection('tasks')
-                      .where('createdBy', isEqualTo: user.email)
-                      .snapshots(),
+                  stream: taskQuery.snapshots(),
                   builder: (context, tasksSnapshot) {
                     if (!tasksSnapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
