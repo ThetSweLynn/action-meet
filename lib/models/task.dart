@@ -6,11 +6,9 @@ class Task {
   final String? description;
   final String createdBy; // email
   final Timestamp createdAt;
-  final String? assignedTo; // email (optional)
+  final String? assignee; // email (optional)
   final Timestamp? deadline; // firestore timestamp
   final String status; // 'pending' or 'complete'
-  final int priority; // 0 low, 1 medium, 2 high
-  final String? meetingId;
 
   Task({
     required this.id,
@@ -18,11 +16,9 @@ class Task {
     this.description,
     required this.createdBy,
     required this.createdAt,
-    this.assignedTo,
+    this.assignee,
     this.deadline,
     this.status = 'pending',
-    this.priority = 1,
-    this.meetingId,
   });
 
   factory Task.fromDoc(DocumentSnapshot doc) {
@@ -33,11 +29,9 @@ class Task {
       description: d['description'] as String?,
       createdBy: (d['createdBy'] ?? '') as String,
       createdAt: d['createdAt'] as Timestamp? ?? Timestamp.now(),
-      assignedTo: d['assignedTo'] as String?,
-      deadline: d['deadline'] as Timestamp?,
+      assignee: (d['assignee'] ?? '') as String,
+      deadline: (d['deadline'] as Timestamp?) ?? Timestamp.now(),
       status: (d['status'] ?? 'pending') as String,
-      priority: (d['priority'] ?? 1) as int,
-      meetingId: d['meetingId'] as String?,
     );
   }
 
@@ -46,10 +40,8 @@ class Task {
     'description': description,
     'createdBy': createdBy,
     'createdAt': createdAt,
-    'assignedTo': assignedTo,
+    'assignee': assignee,
     'deadline': deadline,
     'status': status,
-    'priority': priority,
-    'meetingId': meetingId,
   };
 }

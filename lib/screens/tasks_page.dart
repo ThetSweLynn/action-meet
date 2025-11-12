@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/task_service.dart';
@@ -16,9 +17,8 @@ class _TasksPageState extends State<TasksPage> {
   final _service = TaskService();
 
   void _openEditor([Task? initial]) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
       builder: (_) => TaskEditor(initial: initial),
     );
   }
@@ -31,15 +31,15 @@ class _TasksPageState extends State<TasksPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tasks'),
-        actions: [
-          IconButton(
-            onPressed: () => _openEditor(),
-            icon: const Icon(Icons.add),
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Tasks'),
+      //   actions: [
+      //     IconButton(
+      //       onPressed: () => _openEditor(),
+      //       icon: const Icon(Icons.add),
+      //     ),
+      //   ],
+      // ),
       body: StreamBuilder<List<Task>>(
         stream: _service.streamTasksCreatedBy(user.email ?? ''),
         builder: (context, snap) {
@@ -55,29 +55,46 @@ class _TasksPageState extends State<TasksPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('No tasks yet'),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: () => _openEditor(),
-                    child: const Text('Create a task'),
+                  Text(
+                    'No tasks yet',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 18),
                   ),
+                  // const SizedBox(height: 10),
+                  // Text(
+                  //   'Start creating',
+                  //   style: TextStyle(color: Colors.grey.shade600),
+                  // ),
+                  // ElevatedButton(
+                  //   onPressed: () => _openEditor(),
+                  //   child: const Text('Create a task'),
+                  // ),
                 ],
               ),
             );
           }
 
-          return ListView.builder(
-            itemCount: tasks.length,
-            itemBuilder: (context, i) {
-              final t = tasks[i];
-              return TaskCard(
-                task: t,
-                onToggleComplete: (v) async =>
-                    await _service.toggleComplete(t.id, v ?? false),
-                onEdit: () => _openEditor(t),
-                onDelete: () async => await _service.deleteTask(t.id),
-              );
-            },
+          // Sort by deadline
+          tasks.sort((a, b) {
+            final deadlineA = (a.deadline)?.toDate() ?? DateTime(9999);
+            final deadlineB = (b.deadline)?.toDate() ?? DateTime(9999);
+            return deadlineA.compareTo(deadlineB);
+          });
+
+          return Padding(
+            padding: const EdgeInsets.only(left: 15, right: 15, top: 30),
+            child: ListView.builder(
+              itemCount: tasks.length,
+              itemBuilder: (context, i) {
+                final t = tasks[i];
+                return TaskCard(
+                  task: t,
+                  // onToggleComplete: (v) async =>
+                  //     await _service.toggleComplete(t.id, v ?? false),
+                  onEdit: () => _openEditor(t),
+                  onDelete: () async => await _service.deleteTask(t.id),
+                );
+              },
+            ),
           );
         },
       ),

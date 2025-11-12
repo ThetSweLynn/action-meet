@@ -29,7 +29,7 @@ class _TaskEditorState extends State<TaskEditor> {
       _titleCtrl.text = t.title;
       _descCtrl.text = t.description ?? '';
       if (t.deadline != null) _deadline = t.deadline!.toDate();
-      _assignedToEmail = t.assignedTo;
+      _assignedToEmail = t.assignee;
     }
   }
 
@@ -45,9 +45,7 @@ class _TaskEditorState extends State<TaskEditor> {
 
     final title = _titleCtrl.text.trim();
     final desc = _descCtrl.text.trim();
-    final deadlineTs = _deadline != null
-        ? Timestamp.fromDate(_deadline!)
-        : null;
+    final deadlineTs = Timestamp.fromDate(_deadline!);
 
     if (widget.initial == null) {
       await _service.addTask(
@@ -59,19 +57,9 @@ class _TaskEditorState extends State<TaskEditor> {
     } else {
       await _service.updateTask(widget.initial!.id, {
         'title': title,
-        // update both fields so member ToDoPage sees changes
         'description': desc.isEmpty ? null : desc,
         'detail': desc.isEmpty ? null : desc,
-        // also update assignees array and legacy fields (normalized by service)
-        'assignees': _assignedToEmail == null
-            ? null
-            : [_assignedToEmail!.trim().toLowerCase()],
-        'assignedTo': _assignedToEmail == null
-            ? null
-            : _assignedToEmail!.trim().toLowerCase(),
-        'assignee': _assignedToEmail == null
-            ? null
-            : _assignedToEmail!.trim().toLowerCase(),
+        'assignee': _assignedToEmail?.trim().toLowerCase(),
         'deadline': deadlineTs,
       });
     }
@@ -165,46 +153,6 @@ class _TaskEditorState extends State<TaskEditor> {
                 maxLines: 3,
               ),
               const SizedBox(height: 12),
-              InkWell(
-                onTap: () async {
-                  final now = DateTime.now();
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _deadline ?? now,
-                    firstDate: now.subtract(const Duration(days: 365)),
-                    lastDate: now.add(const Duration(days: 365 * 5)),
-                  );
-                  if (picked != null) setState(() => _deadline = picked);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE0E0E0)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _deadline == null
-                            ? 'Select Deadline'
-                            : '${_deadline!.toLocal().toString().split(' ').first}',
-                        style: TextStyle(
-                          color: _deadline == null
-                              ? const Color(0xFF808080)
-                              : const Color(0xFF2D2D2D),
-                        ),
-                      ),
-                      const Icon(Icons.calendar_today),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
               TextFormField(
                 initialValue: _assignedToEmail,
                 decoration: InputDecoration(
@@ -232,8 +180,84 @@ class _TaskEditorState extends State<TaskEditor> {
                     vertical: 20,
                   ),
                 ),
+                validator: (value) => value?.trim().isEmpty ?? true
+                    ? 'Please assign to someone'
+                    : null,
                 onChanged: (v) =>
                     _assignedToEmail = v.trim().isEmpty ? null : v.trim(),
+              ),
+              const SizedBox(height: 20),
+              FormField<DateTime>(
+                validator: (value) =>
+                    _deadline == null ? 'Please select a deadline' : null,
+                builder: (FormFieldState<DateTime> state) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      InkWell(
+                        onTap: () async {
+                          final now = DateTime.now();
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _deadline ?? now,
+                            firstDate: DateTime.now(),
+                            lastDate: now.add(const Duration(days: 365 * 5)),
+                          );
+                          if (picked != null) {
+                            setState(() => _deadline = picked);
+                            state.didChange(picked);
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: state.hasError
+                                  ? Colors.red
+                                  : const Color(0xFFE0E0E0),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _deadline == null
+                                    ? 'Select Deadline'
+                                    : _deadline!
+                                          .toLocal()
+                                          .toString()
+                                          .split(' ')
+                                          .first,
+                                style: TextStyle(
+                                  color: _deadline == null
+                                      ? const Color(0xFF808080)
+                                      : const Color(0xFF2D2D2D),
+                                ),
+                              ),
+                              const Icon(Icons.calendar_today),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (state.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            state.errorText ?? '',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 20),
               Row(

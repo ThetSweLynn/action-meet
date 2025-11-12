@@ -63,7 +63,7 @@ class TaskService {
     await _col.doc(taskId).delete();
   }
 
-  Future<void> toggleComplete(String taskId, bool complete) async {
-    await updateTask(taskId, {'status': complete ? 'complete' : 'pending'});
-  }
+  // Future<void> toggleComplete(String taskId, bool complete) async {
+  //   await updateTask(taskId, {'status': complete ? 'complete' : 'pending'});
+  // }
 }

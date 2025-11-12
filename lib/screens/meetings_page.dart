@@ -34,13 +34,13 @@ class MeetingsPage extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
-        
+
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-        
+
             final docs = snapshot.data?.docs ?? [];
-        
+
             if (docs.isEmpty) {
               return const Center(
                 child: Text(
@@ -49,14 +49,16 @@ class MeetingsPage extends StatelessWidget {
                 ),
               );
             }
-        
+
             // Sort by date in Dart
             docs.sort((a, b) {
-              final dateA = (a['date'] as Timestamp?)?.toDate() ?? DateTime.now();
-              final dateB = (b['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+              final dateA =
+                  (a['date'] as Timestamp?)?.toDate() ?? DateTime.now();
+              final dateB =
+                  (b['date'] as Timestamp?)?.toDate() ?? DateTime.now();
               return dateA.compareTo(dateB);
             });
-        
+
             return ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: docs.length,
