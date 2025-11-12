@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+openai-whisper
+torch
+langchain
+langchain-community
+langchain-huggingface
+langchain-google-vertexai
+chromadb
+python-dotenv
+google-cloud-aiplatform
+pydantic
+typing-extensions
+groq

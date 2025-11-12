@@ -42,6 +42,8 @@ dependencies:
   intl: ^0.20.2
   mailer: ^6.6.0
   flutter_dotenv: ^6.0.0
+  file_picker: ^8.0.6
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
