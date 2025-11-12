@@ -29,6 +29,7 @@ class _ToDoPageState extends State<ToDoPage>
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
+    final userEmailNorm = user?.email?.trim().toLowerCase();
 
     return Scaffold(
       body: SafeArea(
@@ -87,8 +88,8 @@ class _ToDoPageState extends State<ToDoPage>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildPendingTasksTab(user?.email),
-                  _buildCompletedTasksTab(user?.email),
+                  _buildPendingTasksTab(userEmailNorm),
+                  _buildCompletedTasksTab(userEmailNorm),
                 ],
               ),
             ),
@@ -102,7 +103,7 @@ class _ToDoPageState extends State<ToDoPage>
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('tasks')
-          .where('assignee', isEqualTo: userEmail)
+          .where('assignees', arrayContains: userEmail)
           .where('status', isEqualTo: 'pending')
           .orderBy('deadline', descending: false)
           .snapshots(),
@@ -200,7 +201,7 @@ class _ToDoPageState extends State<ToDoPage>
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance
           .collection('tasks')
-          .where('assignee', isEqualTo: userEmail)
+          .where('assignees', arrayContains: userEmail)
           .where('status', isEqualTo: 'complete')
           .orderBy('deadline', descending: true)
           .snapshots(),
